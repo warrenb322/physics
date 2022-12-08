@@ -1,18 +1,41 @@
 //WINPROBS (NOT IMPLEMENTED): t NOT b; QUIT: p NOT q
 #include "tictactoe_ai.h"
+int best[19683];
+//0 if losing, 1 if drawing, 2 if winning for the player to move
+vector<int> bestmove[19683];
+int perfect(int pos)
+{
+    //guaranteed that the game is not drawn or lost yet
+    return bestmove[pos][rand()%bestmove[pos].size()];
+}
 int main()
 {
+    //setup perfect player
+    for (int i = 19682; i >= 0; i--)
+    {
+        vector<int> m = moves(i);
+        if (m.empty()) best[i] = 0;
+        else if (m[0] == 19683) best[i] = 1;
+        else
+        {
+            best[i] = 0;
+            for (int t : m) best[i] = max(best[i],2-best[t]);
+            for (int t : m) if (best[t] == 2-best[i]) bestmove[i].push_back(t);
+        }
+    }
     srand(time(NULL));
     load();
     while (true)
     {
         string c;
-        cout << "Play: b\nLoad: l\nSave: s\nStat: n\nQuit: q\n";
+        cout << "Play: b\nLoad: l\nSave: s\nStat: n\nAuto: a\nQuit: q\n";
         cin >> c;
-        if (c == "b" or c == "t" or c == "n")
+        if (c == "b" or c == "t" or c == "n" or c == "a")
         {
             if (c == "t") cout << "Not implemented yet\n";
             int pos = 0, playercol = rand()%2+1, curplayer = 1;
+            if (c == "a")
+                cout << (playercol == 1 ? "Perfect: X\n" : "Perfect: O\n");
             int winner = 0;
             vi positions;
             while (true)
@@ -29,8 +52,9 @@ if (curplayer == playercol)
     for (int i = 0; i < 9; i++) if (pos%pow3[i+1] < pow3[i]) draw = false;
     if (draw) break;
     if (c == "t") cout << "Win chance: " << ai[pos].winprob << '\n';
-    display(pos);
-    while (true)
+    if (c != "a") display(pos);
+    if (c == "a") pos = perfect(pos);
+    else while (true)
     {
         cout << ": ";
         string s;
@@ -62,7 +86,7 @@ else
             display(pos);
             if (winner) cout << ((winner == playercol)?"You win\n":"You lose\n");
             else cout << "Draw\n";
-            if (c == "b")
+            if (c == "b" or c == "a")
             {
 if (!winner) for (int i = 0; i < positions.size()-1; i++)
 {
@@ -102,3 +126,11 @@ else for (int i = 0; i < positions.size()-1; i++)
         else cout << "Invalid input\n";
     }
 }
+/*
+10 a's
+a a a a a a a a a a
+30 a's
+a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a
+100 a's
+a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a
+*/
